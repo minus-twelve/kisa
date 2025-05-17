@@ -364,3 +364,13 @@ func generateToken() (string, error) {
 	}
 	return hex.EncodeToString(b), nil
 }
+
+func (sm *SessionManager) SaveActiveSessions() error {
+    if redisStore, ok := sm.store.(*storage.RedisStore); ok {
+        if err := redisStore.Client().Save(context.Background()).Err(); err != nil {
+            return fmt.Errorf("redis save failed: %w", err)
+        }
+    }
+    log.Println("Active sessions saved")
+    return nil
+}
