@@ -3,12 +3,13 @@ package storage
 import (
 	"errors"
 	"github.com/minus-twelve/kisa"
+	"github.com/minus-twelve/kisa/types"
 	"sync"
 	"time"
 )
 
 type MemoryStore struct {
-	sessions     map[string]kisa.SessionData
+	sessions     map[string]types.SessionData
 	userSessions map[string]map[string]struct{}
 	mutex        sync.RWMutex
 	maxSessions  int
@@ -16,7 +17,7 @@ type MemoryStore struct {
 
 func NewMemoryStore(maxSessions int) *MemoryStore {
 	return &MemoryStore{
-		sessions:     make(map[string]kisa.SessionData),
+		sessions:     make(map[string]types.SessionData),
 		userSessions: make(map[string]map[string]struct{}),
 		maxSessions:  maxSessions,
 	}

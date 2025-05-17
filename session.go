@@ -174,31 +174,36 @@ func (sm *SessionManager) cleanupRateLimits() {
 }
 
 func (sm *SessionManager) CreateSession(userID, ip string) (string, string, error) {
-    sessionToken, err := generateToken()
-    if err != nil {
-        return "", "", err
-    }
+	sessionToken, err := generateToken()
+	if err != nil {
+		return "", "", err
+	}
 
-    csrfToken, err := generateToken() // Генерируем CSRF токен
-    if err != nil {
-        return "", "", err
-    }
+	csrfToken, err := generateToken()
+	if err != nil {
+		return "", "", err
+	}
 
-    session := SessionData{
-        UserID:       userID,
+	nonce, err := generateToken()
+	if err != nil {
+		return "", "", err
+	}
+
+	session := SessionData{
+		UserID:       userID,
 		CreatedAt:    time.Now(),
 		LastActivity: time.Now(),
 		IP:           ip,
 		Data:         make(map[string]interface{}),
-		CSRFToken:    string,
+		CSRFToken:    csrfToken,
 		Nonce:        nonce,
-    }
+	}
 
-    if err := sm.store.Save(sessionToken, session); err != nil {
-        return "", "", err
-    }
+	if err := sm.store.Save(sessionToken, session); err != nil {
+		return "", "", err
+	}
 
-    return sessionToken, csrfToken, nil
+	return sessionToken, csrfToken, nil
 }
 
 func (sm *SessionManager) GenerateNonce(token string) (string, error) {
