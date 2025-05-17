@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/minus-twelve/kisa"
 	"github.com/minus-twelve/kisa/types"
 	"github.com/redis/go-redis/v9"
 	"time"
@@ -41,7 +40,7 @@ func NewRedisStore(cfg types.RedisConfig) (*RedisStore, error) {
 	}, nil
 }
 
-func (r *RedisStore) Save(token string, session kisa.SessionData) error {
+func (r *RedisStore) Save(token string, session types.SessionData) error {
 	session.LastActivity = time.Now()
 
 	data, err := json.Marshal(session)
@@ -58,18 +57,18 @@ func (r *RedisStore) Save(token string, session kisa.SessionData) error {
 	return err
 }
 
-func (r *RedisStore) Get(token string) (kisa.SessionData, error) {
+func (r *RedisStore) Get(token string) (types.SessionData, error) {
 	data, err := r.client.Get(r.ctx, r.prefix+"session:"+token).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return kisa.SessionData{}, errors.New("session not found")
+			return types.SessionData{}, errors.New("session not found")
 		}
-		return kisa.SessionData{}, err
+		return types.SessionData{}, err
 	}
 
-	var session kisa.SessionData
+	var session types.SessionData
 	if err := json.Unmarshal(data, &session); err != nil {
-		return kisa.SessionData{}, err
+		return types.SessionData{}, err
 	}
 
 	return session, nil

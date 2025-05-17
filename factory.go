@@ -6,10 +6,14 @@ import (
 	"github.com/minus-twelve/kisa/types"
 )
 
+func NewInMemoryStore(maxSessions int) Store {
+	return storage.NewMemoryStore(maxSessions)
+}
+
 func CreateStore(cfg types.Config) (Store, error) {
 	switch cfg.StoreType {
 	case "memory":
-		return storage.NewMemoryStore(cfg.Memory.MaxSessions), nil
+		return NewInMemoryStore(cfg.Memory.MaxSessions), nil
 	case "redis":
 		return storage.NewRedisStore(cfg.Redis)
 	default:

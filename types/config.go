@@ -1,7 +1,5 @@
 package types
 
-import "time"
-
 type Config struct {
 	StoreType string `yaml:"store_type"`
 	Memory    struct {

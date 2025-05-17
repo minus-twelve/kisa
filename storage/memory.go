@@ -2,7 +2,6 @@ package storage
 
 import (
 	"errors"
-	"github.com/minus-twelve/kisa"
 	"github.com/minus-twelve/kisa/types"
 	"sync"
 	"time"
@@ -39,7 +38,7 @@ func (s *MemoryStore) GetAllByUserID(userID string) ([]string, error) {
 	return tokens, nil
 }
 
-func (s *MemoryStore) Save(token string, session kisa.SessionData) error {
+func (s *MemoryStore) Save(token string, session types.SessionData) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -96,13 +95,13 @@ func (s *MemoryStore) deleteInternal(token string) {
 	}
 }
 
-func (s *MemoryStore) Get(token string) (kisa.SessionData, error) {
+func (s *MemoryStore) Get(token string) (types.SessionData, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
 	session, exists := s.sessions[token]
 	if !exists {
-		return kisa.SessionData{}, errors.New("session not found")
+		return types.SessionData{}, errors.New("session not found")
 	}
 	return session, nil
 }

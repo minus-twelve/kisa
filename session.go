@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/minus-twelve/kisa/types"
 	"net"
 	"net/http"
 	"os"
@@ -89,7 +90,7 @@ type SessionManager struct {
 
 func NewManager(store Store, config SessionConfig, security SecurityConfig) *SessionManager {
 	if store == nil {
-		store = NewInMemoryStore()
+		store = NewInMemoryStore(1000) // Добавить значение по умолчанию
 	}
 
 	trustedNetworks := make([]net.IPNet, 0, len(security.TrustedProxies))
@@ -189,7 +190,7 @@ func (sm *SessionManager) CreateSession(userID, ip string) (string, string, erro
 		return "", "", err
 	}
 
-	session := SessionData{
+	session := types.SessionData{
 		UserID:       userID,
 		CreatedAt:    time.Now(),
 		LastActivity: time.Now(),
@@ -266,15 +267,15 @@ func (sm *SessionManager) RateLimitMiddleware() gin.HandlerFunc {
 	}
 }
 
-func (sm *SessionManager) GetSession(token string) (SessionData, bool) {
+func (sm *SessionManager) GetSession(token string) (types.SessionData, bool) {
 	session, err := sm.store.Get(token)
 	if err != nil {
-		return SessionData{}, false
+		return types.SessionData{}, false
 	}
 	return session, true
 }
 
-func (sm *SessionManager) UpdateSession(token string, session SessionData) error {
+func (sm *SessionManager) UpdateSession(token string, session types.SessionData) error {
 	session.LastActivity = time.Now()
 	return sm.store.Save(token, session)
 }
