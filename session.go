@@ -1,12 +1,16 @@
 package kisa
 
 import (
+	_ "context"
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/minus-twelve/kisa/storage"
 	"github.com/minus-twelve/kisa/types"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -15,10 +19,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-        "context"
-        "fmt"
-        "log"
-        "github.com/minus-twelve/kisa/storage"
 )
 
 type SecurityConfig struct {
@@ -370,11 +370,15 @@ func generateToken() (string, error) {
 }
 
 func (sm *SessionManager) SaveActiveSessions() error {
-    if redisStore, ok := sm.store.(*storage.RedisStore); ok {
-        if err := redisStore.Client().Save(context.Background()).Err(); err != nil {
-            return fmt.Errorf("redis save failed: %w", err)
-        }
-    }
-    log.Println("Active sessions saved")
-    return nil
+	if saver, ok := sm.store.(interface {
+		SaveAll() error
+	}); ok {
+		if err := saver.SaveAll(); err != nil {
+			return fmt.Errorf("failed to save sessions: %w", err)
+		}
+		log.Println("Active sessions saved successfully")
+		return nil
+	}
+	log.Println("Current store doesn't support active sessions saving")
+	return nil
 }

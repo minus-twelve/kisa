@@ -112,3 +112,11 @@ func (r *RedisStore) GetAllByUserID(userID string) ([]string, error) {
 
 	return validTokens, nil
 }
+
+func (r *RedisStore) Client() *redis.Client {
+    return r.client
+}
+
+func (r *RedisStore) SaveAll() error {
+    return r.client.Save(r.ctx).Err()
+}
