@@ -195,7 +195,7 @@ func (sm *SessionManager) CreateSession(userID, ip string) (string, string, erro
 		LastActivity: time.Now(),
 		IP:           ip,
 		Data:         make(map[string]interface{}),
-		CSRFToken:    csrfToken,
+		CSRFToken:    string,
 		Nonce:        nonce,
 	}
 
