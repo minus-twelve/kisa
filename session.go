@@ -76,10 +76,8 @@ func (rl *RateLimiter) cleanupRateLimits() {
 
 type SessionConfig struct {
 	SessionTTL     time.Duration
-	RefreshTTL     time.Duration
 	CookieName     string
 	SecureCookie   bool
-	CSRFCookieName string
 }
 
 type SessionManager struct {
@@ -178,37 +176,31 @@ func (sm *SessionManager) cleanupRateLimits() {
 	}
 }
 
-func (sm *SessionManager) CreateSession(userID, ip string) (string, string, error) {
-	sessionToken, err := generateToken()
-	if err != nil {
-		return "", "", err
-	}
+func (sm *SessionManager) CreateSession(userID, ip string) (string, error) {
+    sessionToken, err := generateToken()
+    if err != nil {
+        return "", err
+    }
 
-	csrfToken, err := generateToken()
-	if err != nil {
-		return "", "", err
-	}
+    nonce, err := generateToken()
+    if err != nil {
+        return "", err
+    }
 
-	nonce, err := generateToken()
-	if err != nil {
-		return "", "", err
-	}
+    session := types.SessionData{
+        UserID:       userID,
+        CreatedAt:    time.Now(),
+        LastActivity: time.Now(),
+        IP:           ip,
+        Data:         make(map[string]interface{}),
+        Nonce:        nonce,
+    }
 
-	session := types.SessionData{
-		UserID:       userID,
-		CreatedAt:    time.Now(),
-		LastActivity: time.Now(),
-		IP:           ip,
-		Data:         make(map[string]interface{}),
-		CSRFToken:    csrfToken,
-		Nonce:        nonce,
-	}
+    if err := sm.store.Save(sessionToken, session); err != nil {
+        return "", err
+    }
 
-	if err := sm.store.Save(sessionToken, session); err != nil {
-		return "", "", err
-	}
-
-	return sessionToken, csrfToken, nil
+    return sessionToken, nil
 }
 
 func (sm *SessionManager) GenerateNonce(token string) (string, error) {
@@ -250,14 +242,6 @@ func (sm *SessionManager) InvalidateAllSessions(userID string) error {
 		}
 	}
 	return nil
-}
-
-func (sm *SessionManager) ValidateCSRFToken(sessionToken, csrfToken string) bool {
-	session, exists := sm.GetSession(sessionToken)
-	if !exists {
-		return false
-	}
-	return subtle.ConstantTimeCompare([]byte(session.CSRFToken), []byte(csrfToken)) == 1
 }
 
 func (sm *SessionManager) RateLimitMiddleware() gin.HandlerFunc {
